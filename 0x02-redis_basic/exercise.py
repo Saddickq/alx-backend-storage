@@ -9,11 +9,11 @@ from functools import wraps
 
 
 def count_calls(method: Callable) -> Callable:
-    """doc doc class"""
+    """doc class"""
 
     @wraps(method)
     def wrapper(self, *args, **kwargs):
-        """doc doc class"""
+        """doc class"""
         key = method.__qualname__
         self._redis.incr(key)
         return method(self, *args, **kwargs)
@@ -22,13 +22,13 @@ def count_calls(method: Callable) -> Callable:
 
 
 def call_history(method: Callable) -> Callable:
-    """doc doc class"""
+    """doc class"""
     inkey = method.__qualname__ + ":inputs"
     outkey = method.__qualname__ + ":outputs"
 
     @wraps(method)
     def wrapper(self, *args, **kwargs):
-        """doc doc class"""
+        """doc class"""
         self._redis.rpush(inkey, str(args))
         res = method(self, *args, **kwargs)
         self._redis.rpush(outkey, str(res))
@@ -38,7 +38,7 @@ def call_history(method: Callable) -> Callable:
 
 
 def replay(method: Callable) -> None:
-    """doc doc class"""
+    """doc class"""
     input_key = "{}:inputs".format(method.__qualname__)
     output_key = "{}:outputs".format(method.__qualname__)
 
@@ -55,13 +55,16 @@ def replay(method: Callable) -> None:
 
 
 class Cache:
+    """class docs"""
     def __init__(self):
+        """class initialisation"""
         self._redis = redis.Redis()
         self._redis.flushdb()
 
     @count_calls
     @call_history
     def store(self, data: Union[str, bytes, int, float]) -> str:
+        """method docs"""
         key = str(uuid4())
         self._redis.set(key, data)
         return key
@@ -69,16 +72,16 @@ class Cache:
     def get(
         self, key: str, fn: Optional[Callable] = None
     ) -> Union[str, bytes, int, float]:
-        """doc doc method"""
+        """ doc method"""
         value = self._redis.get(key)
         if fn:
             value = fn(value)
         return value
 
     def get_str(self, key: str) -> str:
-        """doc doc method"""
+        """doc method"""
         return self.get(key, fn=str)
 
     def get_int(self, key: str) -> int:
-        """doc doc method"""
+        """doc method"""
         return self.get(key, fn=int)
